@@ -117,84 +117,103 @@ mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 ## without dirtying this repo.
 ##
 
-section "Installing mise"
-if ! command -v mise >/dev/null 2>&1; then
-    note "Installing from https://mise.run"
-    bash <(curl --fail --silent --show-error --location https://mise.run)
-else
-    note "Checking for mise updates"
-    mise self-update --yes
-fi
-export PATH="$HOME/.local/bin:$XDG_DATA_HOME/mise/shims:$PATH"
-
-mkdir -p "$XDG_CONFIG_HOME/mise/conf.d"
-baseline_src="$DOTFILES_DIR/templates/mise-baseline.toml"
-baseline_dst="$XDG_CONFIG_HOME/mise/conf.d/baseline.toml"
-if [[ -L $baseline_dst ]]; then
-    rm "$baseline_dst"
-fi
-if [[ -e $baseline_dst ]]; then
-    warn "$baseline_dst exists and is not a symlink, skipping baseline link"
-else
-    ln -s "$baseline_src" "$baseline_dst"
-    ok "linked baseline -> $baseline_src"
-fi
-
-section "Running mise up..."
-mise up
-
-##
-## tmux plugin manager (skipped if tmux is not installed)
-##
-section "tmux"
-if in_path tmux; then
-    TPM_DIR="$XDG_DATA_HOME/tmux/plugins/tpm"
-    if [[ ! -d "$TPM_DIR" ]]; then
-        println "Installing tpm..."
-        mkdir -p "$(dirname "$TPM_DIR")"
-        git clone -q https://github.com/tmux-plugins/tpm "$TPM_DIR"
-        "$TPM_DIR/bin/install_plugins"
+mise_setup() {
+    section "Installing mise"
+    if ! command -v mise >/dev/null 2>&1; then
+        note "Installing from https://mise.run"
+        bash <(curl --fail --silent --show-error --location https://mise.run)
+    else
+        note "Checking for mise updates"
+        mise self-update --yes
     fi
-else
-    warn "tmux not found; skipping tpm install. Re-run ./install.sh after installing tmux."
-fi
+    export PATH="$HOME/.local/bin:$XDG_DATA_HOME/mise/shims:$PATH"
 
-section "Brew packages"
-# Map package name -> binary to check
-declare -A brew_pkgs=(
-    [coreutils]=gls
-    [gnu-sed]=gsed
-    [gawk]=gawk
-)
+    mkdir -p "$XDG_CONFIG_HOME/mise/conf.d"
+    baseline_src="$DOTFILES_DIR/templates/mise-baseline.toml"
+    baseline_dst="$XDG_CONFIG_HOME/mise/conf.d/baseline.toml"
+    if [[ -L $baseline_dst ]]; then
+        rm "$baseline_dst"
+    fi
+    if [[ -e $baseline_dst ]]; then
+        warn "$baseline_dst exists and is not a symlink, skipping baseline link"
+    else
+        ln -s "$baseline_src" "$baseline_dst"
+        ok "linked baseline -> $baseline_src"
+    fi
 
-if in_path brew; then
-    for pkg in "${!brew_pkgs[@]}"; do
-        bin="${brew_pkgs[$pkg]}"
-        if ! in_path "$bin"; then
-            brew install "$pkg"
-            ok "installed $pkg ($bin)"
-        else
-            note "$pkg already installed"
+    section "Running mise up..."
+    mise up
+}
+
+
+tmux_setup() {
+    section "tmux"
+    if in_path tmux; then
+        TPM_DIR="$XDG_DATA_HOME/tmux/plugins/tpm"
+        if [[ ! -d "$TPM_DIR" ]]; then
+            println "Installing tpm..."
+            mkdir -p "$(dirname "$TPM_DIR")"
+            git clone -q https://github.com/tmux-plugins/tpm "$TPM_DIR"
+            "$TPM_DIR/bin/install_plugins"
         fi
-    done
-fi
+    else
+        warn "tmux not found; skipping tpm install. Re-run ./install.sh after installing tmux."
+    fi
+}
 
-##
-## Neovim plugins (skipped if nvim is not installed)
-##
-section "neovim"
-if in_path nvim; then
-    note "Installing vim plugins..."
 
-    rm -rf $XDG_DATA_HOME/nvim/site
-    curl -SsfLo $XDG_DATA_HOME/nvim/site/autoload/plug.vim --create-dirs \
-           https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+brew_setup() {
+    section "Brew packages"
+    # Map package name -> binary to check
+    declare -A brew_pkgs=(
+        [coreutils]=gls
+        [gnu-sed]=gsed
+        [gawk]=gawk
+    )
 
-    nvim --headless +PlugInstall  +qa
-    nvim --headless +TSUpdate +qa
+    if in_path brew; then
+        for pkg in "${!brew_pkgs[@]}"; do
+            bin="${brew_pkgs[$pkg]}"
+            if ! in_path "$bin"; then
+                brew install "$pkg"
+                ok "installed $pkg ($bin)"
+            else
+                note "$pkg already installed"
+            fi
+        done
+    fi
+}
+
+
+neovim_setup() {
+    section "neovim"
+    if in_path nvim; then
+        note "Installing vim plugins..."
+
+        rm -rf $XDG_DATA_HOME/nvim/site
+        curl -SsfLo $XDG_DATA_HOME/nvim/site/autoload/plug.vim --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+        nvim --headless +PlugInstall  +qa
+        nvim --headless +TSUpdate +qa
+    else
+        warn "nvim not found; skipping neovim plugin install. Re-run ./install.sh after installing nvim."
+    fi
+}
+
+mise_setup   || warn "mise: install issues"
+tmux_setup   || warn "test_fail: failed"
+brew_setup   || warn "brew: install issues"
+neovim_setup || warn "neovim: install issues"
+
+
+section "Summary"
+if (( ERRORS == 0 && WARNINGS == 0 )); then
+    printf '  %sSuccess!%s\n\n' "$GREEN" "$RESET"
+elif (( ERRORS == 0 )); then
+    printf '  %s%d warning(s)%s\n\n' "$YELLOW" "$WARNINGS" "$RESET"
 else
-    warn "nvim not found; skipping neovim plugin install. Re-run ./install.sh after installing nvim."
+    printf '  %s%d error(s)%s, %s%d warning(s)%s\n\n' "$RED" "$ERRORS" "$RESET" "$YELLOW" "$WARNINGS" "$RESET"
 fi
 
-echo
-ok "You may need to restart your shell."
+exit $(( ERRORS > 0 ))
