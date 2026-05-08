@@ -120,9 +120,9 @@ if [[ $UNAME == "Darwin" ]]; then
     export HOMEBREW_NO_AUTO_UPDATE=1
     export HOMEBREW_NO_INSTALL_CLEANUP=1
     if [[ $ARCH == "arm64" ]]; then
-        export HOMEBREW_PREFIX="/opt/homebrew";
-        export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
-        export HOMEBREW_REPOSITORY="/opt/homebrew";
+        export HOMEBREW_PREFIX="/opt/homebrew"
+        export HOMEBREW_REPOSITORY="/opt/homebrew"
+        export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
         eval "$(/usr/bin/env PATH_HELPER_ROOT="/opt/homebrew" /usr/libexec/path_helper -s)"
         [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
         export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
@@ -136,11 +136,13 @@ fi
 setopt nullglob
 
 if [[ "$(uname)" == "Darwin" ]]; then
+    local brewpath=$(brew --prefix)
     gnu_bins=(
         /opt/homebrew/bin
-        $(brew --prefix)/opt/coreutils/libexec/gnubin
-        $(brew --prefix)/opt/gnu-sed/libexec/gnubin
-        $(brew --prefix)/opt/gawk/libexec/gnubin
+        ${brewpath}/opt/coreutils/libexec/gnubin
+        ${brewpath}/opt/coreutils/libexec/gnubin
+        ${brewpath}/opt/gnu-sed/libexec/gnubin
+        ${brewpath}/opt/gawk/libexec/gnubin
         /opt/homebrew/opt/llvm/bin
     )
 else
@@ -258,6 +260,8 @@ if in_path eza; then
     alias elt="eza ${ezaflags} --all --long --sort date"
     alias ele="eza ${ezaflags} --all --long --sort extension"
     alias elss="eza ${ezaflags} --all --long --sort size"
+
+    export EZA_CONFIG_DIR=${XDG_CONFIG_HOME}/eza
 
     export EZA_COLORS="\
     di=3:\
@@ -432,7 +436,7 @@ zinit fpath -f ~/.local/share/zsh/completions
 zstyle -t :omz:plugins:ssh-agent quiet
 zinit snippet OMZP::ssh-agent
 
-zinit pack for ls_colors
+# zinit pack for ls_colors
 
 # | syntax highlighting | <-- needs to be last zinit #
 zinit light zdharma-continuum/fast-syntax-highlighting
