@@ -8,7 +8,13 @@ Fork this to your github repo, then clone down to your machine:
 cd ~
 git clone https://github.com/scottstanfield/dotfiles
 
+Debian:
+sudo dotfiles/os/debian.sh
+
+Mac CLI?
 dotfiles/os/macos-cli.sh   # or sudo os/debian.sh or os/raspbian.sh
+
+Then:
 dotfiles/install.sh        # symlinks configs, bootstraps mise, installs plugins
 zsh
 chsh -s $(which zsh)
