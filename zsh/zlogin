@@ -1,27 +1,19 @@
-# Authors: Sorin Ionescu <sorin.ionescu@gmail.com>
 
-# Execute code that does not affect the current session in the background.
+# Compile the completion dump in background (if changed) to increase startup speed.
 {
-  # Compile the completion dump to increase startup speed.
-  zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
+  zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
   if [[ -s "$zcompdump" && (! -s "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdump}.zwc") ]]; then
     zcompile "$zcompdump"
   fi
 } &!
 
-in_path()  { command -v "$1" >/dev/null 2>/dev/null }
+in_path() { (( $+commands[$1] )) }
 
-# Execute code only if STDERR is bound to a TTY.
-if [[ -o INTERACTIVE && -t 2 ]]; then
-
-    if [[ -z "$TMUX" ]]; then
-        if [[ "$(uname -s)" == "Linux" ]] ; then
-            in_path "linux-splash" && linux-splash
-        else
-            in_path "darwin-splash" && darwin-splash
-        fi
+# Splash on interactive login, except in tmux
+if [[ -t 2 && -z "$TMUX" ]]; then
+    if [[ "$(uname -s)" == "Linux" ]] ; then
+        in_path "linux-splash" && linux-splash
+    else
+        in_path "darwin-splash" && darwin-splash
     fi
-    true
-
-fi >&2
-
+fi

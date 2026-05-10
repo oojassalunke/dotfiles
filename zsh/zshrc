@@ -15,11 +15,22 @@
 # zmodload zsh/zprof
 # Then start a new zsh. Then run and inspect: zprof > startup.txt
 
-: ${XDG_CACHE_HOME:=${HOME}/.cache}        # non-essential cached data
-: ${XDG_CONFIG_HOME:=${HOME}/.config}      # user-specific portable configuration
-: ${XDG_DATA_HOME:=${HOME}/.local/share}   # user-specific data (venvs, nvim swap)
-: ${XDG_STATE_HOME:=${HOME}/.local/state}  # persistent app state (logs, history)
-export XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME
+
+() {
+    local d
+    for d in \
+        "${XDG_CACHE_HOME}/zsh" \
+        "${XDG_STATE_HOME}/zsh" \
+        "${XDG_DATA_HOME}/zsh" \
+        "${XDG_STATE_HOME}/bash" \
+        "${XDG_STATE_HOME}/less" \
+        "${XDG_STATE_HOME}/python" \
+        "${XDG_STATE_HOME}/node" \
+        "${XDG_STATE_HOME}/psql" \
+        "${XDG_STATE_HOME}/r"; do 
+        [[ -d $d ]] || mkdir -p "$d"
+    done
+}
 
 # this should go in a one-time setup
 # mkdir -p -m 755 $XDG_CACHE_HOME $XDG_CONFIG_HOME 
@@ -29,8 +40,8 @@ export XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -r "${XDG_CACHE_HOME}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 in_path() { (( $+commands[$1] )) }
@@ -48,12 +59,11 @@ ARCH=$(arch)        # arm64, i386, x86_64
 #########
 # HISTORY
 #########
-
-HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+HISTFILE="${XDG_STATE_HOME}/zsh/history"
 HISTSIZE=50000
 SAVEHIST=50000
 
-setopt hist_{'expire_dups_first','find_no_dups','ignore_all_dups','reduce_blanks','verify'}
+setopt hist_{'expire_dups_first','find_no_dups','ignore_space','ignore_all_dups','reduce_blanks','verify'}
 setopt {'extended','inc_append','share'}_history
 
 setopt NO_caseglob          # case-insensitive globbing
@@ -80,6 +90,7 @@ bindkey '\e[3~' delete-char
 bindkey '^p'    history-search-backward
 bindkey '^n'    history-search-forward
 bindkey ' '     magic-space
+bindkey $'\e[27;5;13~' accept-line
 
 
 # Press "ESC" to edit command line in vim
@@ -135,7 +146,7 @@ fi
 
 setopt nullglob
 
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ $UNAME == "Darwin" ]]; then
     local brewpath=$(brew --prefix)
     gnu_bins=(
         /opt/homebrew/bin
@@ -154,7 +165,7 @@ path=(
 
     $HOME/bin
     $HOME/.local/bin
-    $HOME/.cargo/bin
+    ${CARGO_HOME}/bin
 
     $gnu_bins[@]
     $path[@]
@@ -212,7 +223,7 @@ fi
 
 export CLICOLOR=1
 alias ls="ls -GF "
-alias la="ls -GF -la"
+alias la="ls -GF -a"
 alias ll="ls -GF -l --sort=extension"
 alias lla="ls -GF -la"
 
@@ -232,7 +243,7 @@ fi
 if in_path gls || ls --version &>/dev/null; then
     lsflags="--color --group-directories-first -F "
     alias ls="ls ${lsflags} "
-    alias la="ls ${lsflags} -la"
+    alias la="ls ${lsflags} -a"
     alias ll="ls ${lsflags} -l --sort=extension"
     alias lla="ls ${lsflags} -la"
     alias lln="ls ${lsflags} -l"
@@ -288,12 +299,16 @@ if in_path eza; then
 fi
 
 
+# envgrep or @
+# Quick search for environment varibles. Usage:
+# @ xdg ==> shows all the XDG variables
 function @() {
-  if [ "$#" -eq 0 ]; then
-    printenv | sort | grep -v COLOR | less 
-  else
-    printenv | sort | grep --invert-match COLOR | grep --ignore-case --color=always "$1"
-  fi
+    local exclude='^(PATH|.*COLOR.*)='
+    if [ "$#" -eq 0 ]; then
+        printenv | sort | grep -vE "$exclude" | less
+    else
+        printenv | sort | grep -vE "$exclude" | grep --ignore-case --color=always "$1"
+    fi
 }
 
 ## ALIASES go here
@@ -351,10 +366,8 @@ function mx() {
 # }
 
 function jl()      { < $1 jq -C . | less $LESS }
-function witch()   { file $(which "$*") }
 function gg()      { git commit -m "$*" }
 function httpie    { command http --pretty=all --verbose $@ | less -R; }
-function fixzsh    { compaudit | xargs chmod go-w }
 function ht()      { (head $1 && echo "---" && tail $1) | less }
 function take()    { mkdir -p $1 && cd $1 }
 function cols()    { head -1 $1 | tr , \\n | cat -n | column }		# show CSV header
@@ -383,6 +396,7 @@ export LESS="${less_options[*]}";
 which "nvim" &> /dev/null && _vi="nvim" || _vi="vim"
 export EDITOR=${_vi}
 alias vi="${_vi} -o"
+alias v=vi
 
 # zshrc and vimrc aliases to edit these two files
 alias zshrc="${_vi} ~/.zshrc"
@@ -401,47 +415,65 @@ fi
 
 zstyle ':completion:*' list-suffixes zstyle ':completion:*' expand prefix suffix 
 
-##
-## zinit plugin installer
-##
+################
+## zinit start
+################
+# Completion system (replaces PZT::modules/completion/init.zsh)
+fpath=(
+    /opt/homebrew/share/zsh/site-functions
+    "${HOME}/.local/share/zsh/completions"
+    $fpath
+)
 
-# ZINIT installer {{{
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+# Basics from zinit
+autoload -Uz compinit
+compinit -C -d "${XDG_CACHE_HOME}/zsh/zcompdump" 
 
-[[ ! -d $ZINIT_HOME ]] && {
-    print -P "%F{33}▓▒░ %F{220}Installing zsh %F{33}zinit%F{220} plugin manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
-    mkdir -p -m 700 "$(dirname $ZINIT_HOME)"
-    git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-    [[ $ZINIT_HOME/.git ]] && \
-        print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
-        print -P "%F{160}▓▒░ Install failed.%f%b"
-} 
-source "${ZINIT_HOME}/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' completer _complete _match _approximate
 
-zinit ice wait silent blockf; 
-zinit snippet PZT::modules/completion/init.zsh
-unsetopt correct
-unsetopt correct_all
-setopt complete_in_word         # cd /ho/sco/tm<TAB> expands to /home/scott/tmp
-setopt auto_menu                # show completion menu on succesive tab presses
+ZSH_PLUGIN_DIR="${XDG_DATA_HOME}/zsh/plugins"
+ZSH_BOOTSTRAP="${DOTFILES}/zsh.plugins.sh"
 
-zinit load zdharma-continuum/history-search-multi-word
-zinit ice depth=1; zinit light romkatv/powerlevel10k
+if [[ ! -d "$ZSH_PLUGIN_DIR" ]]; then
+    if [[ -x "$ZSH_BOOTSTRAP" ]]; then
+        print -P "%F{220}▓▒░ zsh plugins missing, bootstrapping…%f"
+        "$ZSH_BOOTSTRAP" || {
+            print -P "%F{160}▓▒░ Bootstrap failed. Run $ZSH_BOOTSTRAP manually.%f"
+            return 1
+        }
+    else
+        print -P "%F{160}▓▒░ Plugins missing and bootstrap script not found at $ZSH_BOOTSTRAP%f"
+        return 1
+    fi
+fi
 
-zinit fpath -f /opt/homebrew/share/zsh/site-functions
-zinit fpath -f ~/.local/share/zsh/completions
+# powerlevel10k prompt
+source "${ZSH_PLUGIN_DIR}/powerlevel10k/powerlevel10k.zsh-theme"
 
-zstyle -t :omz:plugins:ssh-agent quiet
-zinit snippet OMZP::ssh-agent
+# history-search-multi-word
+source "${ZSH_PLUGIN_DIR}/history-search-multi-word/history-search-multi-word.plugin.zsh"
 
-# zinit pack for ls_colors
+# Inline ssh-agent (replaces OMZP::ssh-agent)
+if [[ -z "$SSH_AUTH_SOCK" ]] || ! ssh-add -l &>/dev/null; then
+    if [[ -f "$HOME/.ssh-agent-env" ]]; then
+        source "$HOME/.ssh-agent-env" >/dev/null
+    fi
+    if ! ssh-add -l &>/dev/null; then
+        ssh-agent > "$HOME/.ssh-agent-env"
+        chmod 600 "$HOME/.ssh-agent-env"
+        source "$HOME/.ssh-agent-env" >/dev/null
+        # ssh-add  # uncomment to auto-add default keys; or rely on lazy-add
+    fi
+fi
 
-# | syntax highlighting | <-- needs to be last zinit #
-zinit light zdharma-continuum/fast-syntax-highlighting
-# After zinit installs fast-syntax-highlighting
-FAST_THEME_MARKER="$HOME/.local/share/fast-syntax-highlighting-configured"
+# Syntax highlighting — MUST be sourced last
+source "${ZSH_PLUGIN_DIR}/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+
+# Fast-theme first-run setup
+FAST_THEME_MARKER="${HOME}/.local/share/fast-syntax-highlighting-configured"
 if [[ ! -f $FAST_THEME_MARKER ]]; then
     fast-theme -q default
     touch $FAST_THEME_MARKER
@@ -449,6 +481,16 @@ fi
 FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}path]='fg=cyan'
 FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}path-to-dir]='fg=cyan,underline'
 FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}comment]='fg=gray'
+
+unsetopt correct
+unsetopt correct_all
+setopt complete_in_word         # cd /ho/sco/tm<TAB> expands to /home/scott/tmp
+setopt auto_menu                # show completion menu on succesive tab presses
+
+
+################
+## END OF ZINIT
+################
 
 export prompticons=( 󰯉 󰊠         ▼         󰆚 󰀘 󱍢 󰦥)
 
