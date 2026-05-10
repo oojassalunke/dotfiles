@@ -15,11 +15,24 @@
 # zmodload zsh/zprof
 # Then start a new zsh. Then run and inspect: zprof > startup.txt
 
+
 : ${XDG_CACHE_HOME:=${HOME}/.cache}        # non-essential cached data
 : ${XDG_CONFIG_HOME:=${HOME}/.config}      # user-specific portable configuration
 : ${XDG_DATA_HOME:=${HOME}/.local/share}   # user-specific data (venvs, nvim swap)
 : ${XDG_STATE_HOME:=${HOME}/.local/state}  # persistent app state (logs, history)
 export XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME
+
+() {
+    local d
+    for d in "${XDG_CACHE_HOME:-$HOME/.cache}/zsh" \
+             "${XDG_STATE_HOME:-$HOME/.local/state}/zsh" \
+             "${XDG_DATA_HOME:-$HOME/.local/share}/zsh"; do
+        [[ -d $d ]] || mkdir -p "$d"
+    done
+}
+
+# this directory should be created by zsh.plugins.sh
+ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins"
 
 # this should go in a one-time setup
 # mkdir -p -m 755 $XDG_CACHE_HOME $XDG_CONFIG_HOME 
@@ -441,7 +454,7 @@ zinit snippet OMZP::ssh-agent
 # | syntax highlighting | <-- needs to be last zinit #
 zinit light zdharma-continuum/fast-syntax-highlighting
 # After zinit installs fast-syntax-highlighting
-FAST_THEME_MARKER="$HOME/.local/share/fast-syntax-highlighting-configured"
+FAST_THEME_MARKER="$XDG_DATA_HOME/zsh/fast-syntax-highlighting-configured"
 if [[ ! -f $FAST_THEME_MARKER ]]; then
     fast-theme -q default
     touch $FAST_THEME_MARKER
