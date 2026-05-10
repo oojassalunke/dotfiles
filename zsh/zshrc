@@ -63,7 +63,7 @@ HISTFILE="${XDG_STATE_HOME}/zsh/history"
 HISTSIZE=50000
 SAVEHIST=50000
 
-setopt hist_{'expire_dups_first','find_no_dups','ignore_all_dups','reduce_blanks','verify'}
+setopt hist_{'expire_dups_first','find_no_dups','ignore_space','ignore_all_dups','reduce_blanks','verify'}
 setopt {'extended','inc_append','share'}_history
 
 setopt NO_caseglob          # case-insensitive globbing
@@ -366,10 +366,8 @@ function mx() {
 # }
 
 function jl()      { < $1 jq -C . | less $LESS }
-function witch()   { file $(which "$*") }
 function gg()      { git commit -m "$*" }
 function httpie    { command http --pretty=all --verbose $@ | less -R; }
-function fixzsh    { compaudit | xargs chmod go-w }
 function ht()      { (head $1 && echo "---" && tail $1) | less }
 function take()    { mkdir -p $1 && cd $1 }
 function cols()    { head -1 $1 | tr , \\n | cat -n | column }		# show CSV header
@@ -436,12 +434,21 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' completer _complete _match _approximate
 
-unsetopt correct correct_all
-setopt complete_in_word auto_menu
-
-# Test for plugins and source
 ZSH_PLUGIN_DIR="${XDG_DATA_HOME}/zsh/plugins"
-ZSH_BOOTSTRAP="${DOTFILES}/zsh.bootstrap.sh"
+ZSH_BOOTSTRAP="${DOTFILES}/zsh.plugins.sh"
+
+if [[ ! -d "$ZSH_PLUGIN_DIR" ]]; then
+    if [[ -x "$ZSH_BOOTSTRAP" ]]; then
+        print -P "%F{220}▓▒░ zsh plugins missing, bootstrapping…%f"
+        "$ZSH_BOOTSTRAP" || {
+            print -P "%F{160}▓▒░ Bootstrap failed. Run $ZSH_BOOTSTRAP manually.%f"
+            return 1
+        }
+    else
+        print -P "%F{160}▓▒░ Plugins missing and bootstrap script not found at $ZSH_BOOTSTRAP%f"
+        return 1
+    fi
+fi
 
 # powerlevel10k prompt
 source "${ZSH_PLUGIN_DIR}/powerlevel10k/powerlevel10k.zsh-theme"
