@@ -414,47 +414,54 @@ fi
 
 zstyle ':completion:*' list-suffixes zstyle ':completion:*' expand prefix suffix 
 
-##
-## zinit plugin installer
-##
+################
+## zinit start
+################
+ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins"
 
-# ZINIT installer {{{
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+# Completion system (replaces PZT::modules/completion/init.zsh)
+fpath=(
+    /opt/homebrew/share/zsh/site-functions
+    "${HOME}/.local/share/zsh/completions"
+    $fpath
+)
 
-[[ ! -d $ZINIT_HOME ]] && {
-    print -P "%F{33}▓▒░ %F{220}Installing zsh %F{33}zinit%F{220} plugin manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
-    mkdir -p -m 700 "$(dirname $ZINIT_HOME)"
-    git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-    [[ $ZINIT_HOME/.git ]] && \
-        print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
-        print -P "%F{160}▓▒░ Install failed.%f%b"
-} 
-source "${ZINIT_HOME}/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
+# Basics from zinit
+autoload -Uz compinit
+compinit -C -d "${XDG_CACHE_HOME}/zsh/zcompdump" 
 
-zinit ice wait silent blockf; 
-zinit snippet PZT::modules/completion/init.zsh
-unsetopt correct
-unsetopt correct_all
-setopt complete_in_word         # cd /ho/sco/tm<TAB> expands to /home/scott/tmp
-setopt auto_menu                # show completion menu on succesive tab presses
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' completer _complete _match _approximate
 
-zinit load zdharma-continuum/history-search-multi-word
-zinit ice depth=1; zinit light romkatv/powerlevel10k
+unsetopt correct correct_all
+setopt complete_in_word auto_menu
 
-zinit fpath -f /opt/homebrew/share/zsh/site-functions
-zinit fpath -f ~/.local/share/zsh/completions
+# powerlevel10k prompt
+source "${ZSH_PLUGIN_DIR}/powerlevel10k/powerlevel10k.zsh-theme"
 
-zstyle -t :omz:plugins:ssh-agent quiet
-zinit snippet OMZP::ssh-agent
+# history-search-multi-word
+source "${ZSH_PLUGIN_DIR}/history-search-multi-word/history-search-multi-word.plugin.zsh"
 
-# zinit pack for ls_colors
+# Inline ssh-agent (replaces OMZP::ssh-agent)
+if [[ -z "$SSH_AUTH_SOCK" ]] || ! ssh-add -l &>/dev/null; then
+    if [[ -f "$HOME/.ssh-agent-env" ]]; then
+        source "$HOME/.ssh-agent-env" >/dev/null
+    fi
+    if ! ssh-add -l &>/dev/null; then
+        ssh-agent > "$HOME/.ssh-agent-env"
+        chmod 600 "$HOME/.ssh-agent-env"
+        source "$HOME/.ssh-agent-env" >/dev/null
+        # ssh-add  # uncomment to auto-add default keys; or rely on lazy-add
+    fi
+fi
 
-# | syntax highlighting | <-- needs to be last zinit #
-zinit light zdharma-continuum/fast-syntax-highlighting
-# After zinit installs fast-syntax-highlighting
-FAST_THEME_MARKER="$XDG_DATA_HOME/zsh/fast-syntax-highlighting-configured"
+# Syntax highlighting — MUST be sourced last
+source "${ZSH_PLUGIN_DIR}/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+
+# Fast-theme first-run setup
+FAST_THEME_MARKER="${HOME}/.local/share/fast-syntax-highlighting-configured"
 if [[ ! -f $FAST_THEME_MARKER ]]; then
     fast-theme -q default
     touch $FAST_THEME_MARKER
@@ -462,6 +469,16 @@ fi
 FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}path]='fg=cyan'
 FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}path-to-dir]='fg=cyan,underline'
 FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}comment]='fg=gray'
+
+unsetopt correct
+unsetopt correct_all
+setopt complete_in_word         # cd /ho/sco/tm<TAB> expands to /home/scott/tmp
+setopt auto_menu                # show completion menu on succesive tab presses
+
+
+################
+## END OF ZINIT
+################
 
 export prompticons=( 󰯉 󰊠         ▼         󰆚 󰀘 󱍢 󰦥)
 
