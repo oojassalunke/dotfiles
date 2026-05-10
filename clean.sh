@@ -47,6 +47,7 @@ rm -rf "$XDG_DATA_HOME/nvim/site"
 
 section "Removing zsh plugins"
 rm -rf ~/.local/share/zinit
+rm -rf "$XDG_DATA_HOME/zsh"
 
 note "Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files)."
 

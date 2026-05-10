@@ -16,23 +16,21 @@
 # Then start a new zsh. Then run and inspect: zprof > startup.txt
 
 
-: ${XDG_CACHE_HOME:=${HOME}/.cache}        # non-essential cached data
-: ${XDG_CONFIG_HOME:=${HOME}/.config}      # user-specific portable configuration
-: ${XDG_DATA_HOME:=${HOME}/.local/share}   # user-specific data (venvs, nvim swap)
-: ${XDG_STATE_HOME:=${HOME}/.local/state}  # persistent app state (logs, history)
-export XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME
-
 () {
     local d
-    for d in "${XDG_CACHE_HOME:-$HOME/.cache}/zsh" \
-             "${XDG_STATE_HOME:-$HOME/.local/state}/zsh" \
-             "${XDG_DATA_HOME:-$HOME/.local/share}/zsh"; do
+    for d in \
+        "${XDG_CACHE_HOME}/zsh" \
+        "${XDG_STATE_HOME}/zsh" \
+        "${XDG_DATA_HOME}/zsh" \
+        "${XDG_STATE_HOME}/bash" \
+        "${XDG_STATE_HOME}/less" \
+        "${XDG_STATE_HOME}/python" \
+        "${XDG_STATE_HOME}/node" \
+        "${XDG_STATE_HOME}/psql" \
+        "${XDG_STATE_HOME}/r"; do 
         [[ -d $d ]] || mkdir -p "$d"
     done
 }
-
-# this directory should be created by zsh.plugins.sh
-ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins"
 
 # this should go in a one-time setup
 # mkdir -p -m 755 $XDG_CACHE_HOME $XDG_CONFIG_HOME 
@@ -42,8 +40,8 @@ ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins"
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -r "${XDG_CACHE_HOME}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 in_path() { (( $+commands[$1] )) }
@@ -61,8 +59,7 @@ ARCH=$(arch)        # arm64, i386, x86_64
 #########
 # HISTORY
 #########
-
-HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+HISTFILE="${XDG_STATE_HOME}/zsh/history"
 HISTSIZE=50000
 SAVEHIST=50000
 
@@ -93,6 +90,7 @@ bindkey '\e[3~' delete-char
 bindkey '^p'    history-search-backward
 bindkey '^n'    history-search-forward
 bindkey ' '     magic-space
+bindkey $'\e[27;5;13~' accept-line
 
 
 # Press "ESC" to edit command line in vim
@@ -167,7 +165,7 @@ path=(
 
     $HOME/bin
     $HOME/.local/bin
-    $HOME/.cargo/bin
+    ${CARGO_HOME}/bin
 
     $gnu_bins[@]
     $path[@]
@@ -225,7 +223,7 @@ fi
 
 export CLICOLOR=1
 alias ls="ls -GF "
-alias la="ls -GF -la"
+alias la="ls -GF -a"
 alias ll="ls -GF -l --sort=extension"
 alias lla="ls -GF -la"
 
@@ -245,7 +243,7 @@ fi
 if in_path gls || ls --version &>/dev/null; then
     lsflags="--color --group-directories-first -F "
     alias ls="ls ${lsflags} "
-    alias la="ls ${lsflags} -la"
+    alias la="ls ${lsflags} -a"
     alias ll="ls ${lsflags} -l --sort=extension"
     alias lla="ls ${lsflags} -la"
     alias lln="ls ${lsflags} -l"
@@ -301,12 +299,16 @@ if in_path eza; then
 fi
 
 
+# envgrep or @
+# Quick search for environment varibles. Usage:
+# @ xdg ==> shows all the XDG variables
 function @() {
-  if [ "$#" -eq 0 ]; then
-    printenv | sort | grep -v COLOR | less 
-  else
-    printenv | sort | grep --invert-match COLOR | grep --ignore-case --color=always "$1"
-  fi
+    local exclude='^(PATH|.*COLOR.*)='
+    if [ "$#" -eq 0 ]; then
+        printenv | sort | grep -vE "$exclude" | less
+    else
+        printenv | sort | grep -vE "$exclude" | grep --ignore-case --color=always "$1"
+    fi
 }
 
 ## ALIASES go here
@@ -396,6 +398,7 @@ export LESS="${less_options[*]}";
 which "nvim" &> /dev/null && _vi="nvim" || _vi="vim"
 export EDITOR=${_vi}
 alias vi="${_vi} -o"
+alias v=vi
 
 # zshrc and vimrc aliases to edit these two files
 alias zshrc="${_vi} ~/.zshrc"
@@ -417,8 +420,6 @@ zstyle ':completion:*' list-suffixes zstyle ':completion:*' expand prefix suff
 ################
 ## zinit start
 ################
-ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins"
-
 # Completion system (replaces PZT::modules/completion/init.zsh)
 fpath=(
     /opt/homebrew/share/zsh/site-functions
@@ -437,6 +438,10 @@ zstyle ':completion:*' completer _complete _match _approximate
 
 unsetopt correct correct_all
 setopt complete_in_word auto_menu
+
+# Test for plugins and source
+ZSH_PLUGIN_DIR="${XDG_DATA_HOME}/zsh/plugins"
+ZSH_BOOTSTRAP="${DOTFILES}/zsh.bootstrap.sh"
 
 # powerlevel10k prompt
 source "${ZSH_PLUGIN_DIR}/powerlevel10k/powerlevel10k.zsh-theme"

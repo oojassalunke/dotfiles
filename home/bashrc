@@ -42,6 +42,7 @@ shopt -s histappend							# append rather than overwrite history
 export HISTCONTROL=ignoredups:erasedups
 export HISTSIZE=100000						# save last 100k commands
 export HISTFILESIZE=100000					# save last 100k commands
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/bash/history"
 
 # Prefer nvim over vim
 which "nvim" &> /dev/null && vic="nvim" || vic="vim"

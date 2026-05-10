@@ -81,3 +81,10 @@ nnoremap <S-Tab> :tabn<CR>
 nnoremap <Tab> <C-w><C-w>
 
 nnoremap <silent> q <space>
+
+let s:state = !empty($XDG_STATE_HOME) ? $XDG_STATE_HOME : expand('~/.local/state')
+let s:vim_state = s:state . '/vim'
+if !isdirectory(s:vim_state)
+    call mkdir(s:vim_state, 'p', 0700)
+endif
+let &viminfo .= ',n' . s:vim_state . '/viminfo'

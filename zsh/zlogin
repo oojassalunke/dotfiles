@@ -9,17 +9,11 @@
 
 in_path() { (( $+commands[$1] )) }
 
-# Execute code only if STDERR is bound to a TTY.
-if [[ -o INTERACTIVE && -t 2 ]]; then
-
-    if [[ -z "$TMUX" ]]; then
-        if [[ "$(uname -s)" == "Linux" ]] ; then
-            in_path "linux-splash" && linux-splash
-        else
-            in_path "darwin-splash" && darwin-splash
-        fi
+# Splash on interactive login, except in tmux
+if [[ -t 2 && -z "$TMUX" ]]; then
+    if [[ "$(uname -s)" == "Linux" ]] ; then
+        in_path "linux-splash" && linux-splash
+    else
+        in_path "darwin-splash" && darwin-splash
     fi
-    true
-
-fi >&2
-
+fi
