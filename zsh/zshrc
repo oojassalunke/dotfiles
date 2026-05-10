@@ -146,7 +146,7 @@ fi
 
 setopt nullglob
 
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ $UNAME == "Darwin" ]]; then
     local brewpath=$(brew --prefix)
     gnu_bins=(
         /opt/homebrew/bin
