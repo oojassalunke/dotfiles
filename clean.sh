@@ -49,6 +49,13 @@ section "Removing zsh plugins"
 rm -rf ~/.local/share/zinit
 rm -rf "$XDG_DATA_HOME/zsh"
 
+section "Removing mise extras"
+dst="$XDG_CONFIG_HOME/mise/conf.d/extras.toml"
+rm $dst
+
+section "Removing fonts"
+brew uninstall --cask font-meslo-lg-nerd-font font-jetbrains-mono-nerd-font font-monaspice-nerd-font font-sf-mono-nerd-font-ligaturized
+
 note "Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files)."
 
 section "Summary"

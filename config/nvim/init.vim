@@ -879,6 +879,11 @@ catch
     colorscheme slate
 endtry
 
+if $TERM_PROGRAM ==# 'Apple_Terminal'
+  set notermguicolors
+  colorscheme desert
+endif
+
 " hi colorcolumn ctermbg=darkgrey
 
 " Hide the Magenta with ,/
