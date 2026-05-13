@@ -17,7 +17,6 @@ zcompile-many() {
 # Format: <name>|<repo>|<commit-sha>
 plugins=(
     "powerlevel10k|https://github.com/romkatv/powerlevel10k.git|604f19a"
-    "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions.git|85919cd"
     "fast-syntax-highlighting|https://github.com/zdharma-continuum/fast-syntax-highlighting.git|3d574cc"
 )
 
@@ -25,7 +24,6 @@ plugins=(
 # clone or SHA change. Plugins not listed here have no post-install step.
 typeset -A post_install=(
     powerlevel10k              "make pkg"
-    zsh-autosuggestions        "zcompile-many zsh-autosuggestions.zsh src/**/*.zsh"
     fast-syntax-highlighting   "zcompile-many fast-syntax-highlighting.plugin.zsh **/*.zsh"
 )
 

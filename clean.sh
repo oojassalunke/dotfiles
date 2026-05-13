@@ -51,11 +51,34 @@ rm -rf "$XDG_DATA_HOME/zsh"
 
 section "Removing mise extras"
 dst="$XDG_CONFIG_HOME/mise/conf.d/extras.toml"
-rm $dst
+rm -f $dst
 
-section "Removing fonts"
-brew uninstall --cask font-meslo-lg-nerd-font font-jetbrains-mono-nerd-font font-monaspice-nerd-font font-sf-mono-nerd-font-ligaturized
+# Print the subset of the given casks that brew currently has installed.
+installed_casks() {
+    local cask
+    for cask in "$@"; do
+        brew list --cask --versions "$cask" >/dev/null 2>&1 && printf '%s\n' "$cask"
+    done
+}
 
+if [[ "$(uname)" == "Darwin" ]]; then
+    section "Removing fonts"
+    fonts=(
+        font-meslo-lg-nerd-font
+        font-jetbrains-mono-nerd-font
+        font-monaspace-nerd-font
+        font-sf-mono-nerd-font-ligaturized
+    )
+
+    mapfile -t fonts_present < <(installed_casks "${fonts[@]}")
+    if (( ${#fonts_present[@]} > 0 )); then
+        brew uninstall --quiet --cask "${fonts_present[@]}"
+    else
+        println "  no fonts to remove"
+    fi
+fi
+
+section "Note"
 note "Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files)."
 
 section "Summary"

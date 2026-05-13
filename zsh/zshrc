@@ -457,7 +457,6 @@ setup_completion() {
 # 2. Plugins: prompt theme, autosuggestions, syntax highlighting, p10k config.
 setup_plugins() {
     safe_source powerlevel10k/powerlevel10k.zsh-theme              # prompt theme
-    safe_source zsh-autosuggestions/zsh-autosuggestions.zsh        # ghost-text suggestions
     safe_source fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh  # syntax coloring (load last)
     [[ -f ${XDG_CONFIG_HOME}/zsh/p10k.zsh ]] && source ${XDG_CONFIG_HOME}/zsh/p10k.zsh
 }
