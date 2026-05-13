@@ -48,5 +48,9 @@ brew install --cask "${fonts[@]}"
 # enable key repeat in VS Code
 defaults write com.microsoft.VSCode ApplePressAndHoldEnabled -bool false
 
+# tell Hammerspoon where to find it's config
+mkdir -p $XDG_CONFIG_HOME/hammerspoon
+defaults write org.hammerspoon.Hammerspoon MJConfigFile $XDG_CONFIG_HOME/hammerspoon/init.lua
+
 println ""
 println "Done."

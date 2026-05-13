@@ -94,7 +94,7 @@ Plug 'sotte/presenting.nvim'
 
 Plug 'junegunn/vim-easy-align',		{ 'on': ['<Plug>(EasyAlign)', 'EasyAlign'] }
 xmap ga <Plug>(EasyAlign)
-nmap ga <Plug>(EasyAlign)
+vmap ea <Plug>(EasyAlign)
 let g:easy_align_delimiters = { ';': {'pattern': ':'}, '>': {'pattern': '>'}, 'a': {'pattern': '<-'}, '<': {'pattern': '<-'}, ':': {'pattern': ':='}}
 au FileType markdown vmap <Leader><Bslash> :EasyAlign*<Bar><Enter>
 
@@ -128,6 +128,22 @@ nnoremap <leader>fh :Telescope help_tags<CR>
 " -------- SAFE STARTUP GUARDS --------
 
 lua << EOF
+vim.api.nvim_create_user_command("H1", function(opts)
+    local title = opts.args
+    local width = 60
+    local cs = (vim.bo.commentstring:gsub("%%s", "")):gsub("%s+$", "")
+    local prefix = cs .. " ━━━ " .. title .. " "
+    local dashes = math.max(3, width - vim.fn.strdisplaywidth(prefix))
+    local line = prefix .. string.rep("━", dashes)
+    vim.api.nvim_put({line}, "l", true, true)
+end, { nargs = 1 })
+
+vim.api.nvim_create_user_command("H2", function(opts)
+    local title = opts.args
+    local cs = (vim.bo.commentstring:gsub("%%s", "")):gsub("%s+$", "")
+    vim.api.nvim_put({ cs .. " § " .. title }, "l", true, true)
+end, { nargs = 1 })
+
 local function safe_require(name)
   local ok, mod = pcall(require, name)
   if ok then return mod end
