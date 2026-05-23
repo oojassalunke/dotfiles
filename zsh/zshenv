@@ -11,21 +11,14 @@ export HISTFILE="${XDG_STATE_HOME}/zsh/history"
 export HISTFILE_BASH="${XDG_STATE_HOME}/bash/history"  # see note below
 export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
 
-# inputrc for bash's readline
-export INPUTRC="$XDG_CONFIG_HOME"/readline/inputrc
-
 # macOS Terminal "Resume" feature (which I don't use)
 export SHELL_SESSIONS_DISABLE=1   # if you don't use them; or:
-# export SHELL_SESSION_DIR="${XDG_STATE_HOME}/zsh/sessions"
 
 # Python REPL (3.13+)
 export PYTHON_HISTORY="${XDG_STATE_HOME}/python/history"
 
 # Node REPL
 export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node/repl_history"
-
-# psql
-export PSQL_HISTORY="${XDG_STATE_HOME}/psql/history"
 
 # npm
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
@@ -36,6 +29,14 @@ export NPM_CONFIG_LOGS_DIR="${XDG_STATE_HOME}/npm/logs"
 # rustup / cargo
 export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
 export CARGO_HOME="${XDG_DATA_HOME}/cargo"
+
+# inputrc for bash's readline
+export INPUTRC="$XDG_CONFIG_HOME"/readline/inputrc
+
+# macOS Terminal "Resume" feature (which I don't use)
+
+# psql
+export PSQL_HISTORY="${XDG_STATE_HOME}/psql/history"
 
 # go
 export GOPATH="$XDG_DATA_HOME"/go

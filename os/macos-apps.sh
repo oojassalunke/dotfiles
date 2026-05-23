@@ -26,27 +26,73 @@ fi
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 export HOMEBREW_NO_AUTO_UPDATE=1
 
+# Install a cask if not already installed.
+# Skips if the cask is recorded by brew OR if its .app already exists in /Applications.
+install_cask() {
+    local cask="$1"
+    if brew list --cask --versions "$cask" >/dev/null 2>&1; then
+        println "  ✓ $cask already installed (brew)"
+        return 0
+    fi
+    println "  → installing $cask"
+    if ! brew install --cask "$cask"; then
+        # Most common failure: app exists in /Applications but wasn't brew-installed.
+        # Adopt it instead of failing.
+        println "    retrying with --adopt..."
+        brew install --cask --adopt "$cask" || {
+            println "  ✗ failed to install $cask (continuing)"
+            return 1
+        }
+    fi
+}
+
+# Print the subset of the given casks that brew doesn't already have installed.
+missing_casks() {
+    local cask
+    for cask in "$@"; do
+        brew list --cask --versions "$cask" >/dev/null 2>&1 || printf '%s\n' "$cask"
+    done
+}
+
 apps=(
     ghostty
     hammerspoon
-    handmirror
     rectangle
 )
+
+# enable key repeat in VS Code
+defaults write com.microsoft.VSCode ApplePressAndHoldEnabled -bool false
+
+# tell Hammerspoon where to find it's config
+mkdir -p $XDG_CONFIG_HOME/hammerspoon
+defaults write org.hammerspoon.Hammerspoon MJConfigFile $XDG_CONFIG_HOME/hammerspoon/init.lua
+
+
+# I like handmirror but you'll need to get it from the app store
+# handmirror
 
 fonts=(
     font-meslo-lg-nerd-font
     font-jetbrains-mono-nerd-font
     font-monaspace-nerd-font
+    font-sf-mono-nerd-font-ligaturized
 )
 
 println "Installing GUI apps..."
-brew install --cask "${apps[@]}"
+mapfile -t apps_missing < <(missing_casks "${apps[@]}")
+if (( ${#apps_missing[@]} > 0 )); then
+    brew install --cask --adopt "${apps_missing[@]}"
+else
+    println "  all apps already installed"
+fi
 
 println "Installing fonts..."
-brew install --cask "${fonts[@]}"
-
-# enable key repeat in VS Code
-defaults write com.microsoft.VSCode ApplePressAndHoldEnabled -bool false
+mapfile -t fonts_missing < <(missing_casks "${fonts[@]}")
+if (( ${#fonts_missing[@]} > 0 )); then
+    brew install --cask --quiet "${fonts_missing[@]}"
+else
+    println "  all fonts already installed"
+fi
 
 # tell Hammerspoon where to find it's config
 mkdir -p $XDG_CONFIG_HOME/hammerspoon
