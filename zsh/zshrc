@@ -473,15 +473,19 @@ setup_fsh_theme() {
 
 # 4. ssh-agent: reuse running agent or start a new one.
 setup_ssh_agent() {
-    if [[ -n $SSH_AUTH_SOCK ]] && ssh-add -l &>/dev/null; then
-        return  # already have a working agent
-    fi
+    # If we can already reach an agent (with or without keys), reuse it.
+    ssh-add -l &>/dev/null
+    [[ $? -ne 2 ]] && return   # exit 0 = has keys, 1 = empty but alive; both fine
+
+    # Try the saved env from a previous session.
     [[ -f $HOME/.ssh-agent-env ]] && source $HOME/.ssh-agent-env >/dev/null
-    if ! ssh-add -l &>/dev/null; then
-        ssh-agent > $HOME/.ssh-agent-env
-        chmod 600 $HOME/.ssh-agent-env
-        source $HOME/.ssh-agent-env >/dev/null
-    fi
+    ssh-add -l &>/dev/null
+    [[ $? -ne 2 ]] && return   # the saved agent is alive — reuse it
+
+    # No reachable agent anywhere; start a fresh one.
+    ssh-agent > $HOME/.ssh-agent-env
+    chmod 600 $HOME/.ssh-agent-env
+    source $HOME/.ssh-agent-env >/dev/null
 }
 
 # Run them in order.
