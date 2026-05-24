@@ -200,10 +200,17 @@ neovim_setup() {
     fi
 }
 
+zsh_setup() {
+    section "zsh plugins"
+    ./zsh.plugins.zsh
+}
+
+
 mise_setup   || warn "mise: install issues"
 tmux_setup   || warn "test_fail: failed"
 brew_setup   || warn "brew: install issues"
 neovim_setup || warn "neovim: install issues"
+zsh_setup    || warn "zsh: plugin issues"
 
 
 section "Summary"
