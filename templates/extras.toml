@@ -19,6 +19,9 @@ go     = "latest"
 # r — dropped; building R from source needs gfortran + LaTeX. Install via
 # `brew install r` (macOS) or `apt install r-base` (Debian) when needed.
 
+glow = "2.1.2"      # markdown viewer
+
+
 # requires node
 prettier = "latest"
 
