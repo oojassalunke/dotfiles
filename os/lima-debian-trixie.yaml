@@ -21,6 +21,9 @@ images:
 mounts:
   - location: "/tmp/lima"
     writable: true
+  - location: "~/dotfiles"
+    mountPoint: "/mnt/dotfiles"
+    writable: true
 
 mountType: virtiofs  # fast virtio-based mount; use "9p" if you hit compatibility issues
 
@@ -37,10 +40,10 @@ provision:
       apt-get update
       apt-get install -y --no-install-recommends git less curl
 
-  - mode: user
-    script: |
-      #!/bin/bash
-      git clone https://github.com/scottstanfield/dotfiles.git "$HOME/dotfiles"
+  #- mode: user
+  #  script: |
+  #    #!/bin/bash
+  #    git clone https://github.com/scottstanfield/dotfiles.git "$HOME/dotfiles"
 
 
 networks:
