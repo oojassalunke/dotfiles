@@ -39,8 +39,12 @@ myunlink config "$XDG_CONFIG_HOME"
 myunlink home   "$HOME"        --dot
 myunlink zsh    "$HOME"        --dot
 
+section "Removing cached Powerlevel10k promp files:
+rm -rf -- "${XDG_CACHE_HOME:-$HOME/.cache}"/p10k-*(N) "${XDG_CACHE_HOME:-$HOME/.cache}"/gitstatus
+
+
 section "Removing tmux plugins"
-rm -rf "$XDG_DATA_HOME/tmux/plugins"
+rm -rf "$XDG_DATA_HOME/tmuxplugins"
 
 section "Removing neovim plugins"
 rm -rf "$XDG_DATA_HOME/nvim/site"
