@@ -148,15 +148,14 @@ mise_setup() {
 tmux_setup() {
     section "tmux"
     if in_path tmux; then
-        TPM_DIR="$XDG_DATA_HOME/tmux/plugins/tpm"
-        if [[ ! -d "$TPM_DIR" ]]; then
-            println "Installing tpm..."
-            mkdir -p "$(dirname "$TPM_DIR")"
-            git clone -q https://github.com/tmux-plugins/tpm "$TPM_DIR"
-            "$TPM_DIR/bin/install_plugins"
+        local plugdir="$XDG_DATA_HOME/tmux/plugins"
+        if [[ ! -d "$plugdir" ]]; then
+            println "Installing tmux dracula colors scheme..."
+            mkdir -p "$(dirname "$plugdir")"
+            git clone -q https://github.com/dracula/tmux "$plugdir/dracula"
         fi
     else
-        warn "tmux not found; skipping tpm install. Re-run ./install.sh after installing tmux."
+        warn "tmux not found. Re-run ./install.sh after installing tmux."
     fi
 }
 
@@ -200,10 +199,21 @@ neovim_setup() {
     fi
 }
 
+zsh_setup() {
+    section "zsh plugins"
+    if in_path zsh; then
+        zsh $DOTFILES_DIR/zsh.plugins.zsh
+    else
+        warn "zsh not found"
+    fi
+}
+
+
 mise_setup   || warn "mise: install issues"
 tmux_setup   || warn "test_fail: failed"
 brew_setup   || warn "brew: install issues"
 neovim_setup || warn "neovim: install issues"
+zsh_setup    || warn "zsh: plugin setup issues"
 
 
 section "Summary"
