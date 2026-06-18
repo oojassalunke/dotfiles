@@ -15,7 +15,6 @@ sudo dotfiles/os/debian.sh
 dotfiles/os/macos-cli.sh   # or sudo os/debian.sh or os/raspbian.sh
 
 dotfiles/install.sh        # symlinks configs, bootstraps mise, installs plugins
-dotfiles/zsh.plugins.zsh
 zsh
 chsh -s $(which zsh)
 
