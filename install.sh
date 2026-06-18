@@ -149,11 +149,10 @@ tmux_setup() {
     section "tmux"
     if in_path tmux; then
         local plugdir="$XDG_DATA_HOME/tmux/plugins"
-        if [[ ! -d "$plugdir" ]]; then
-            println "Installing tmux dracula colors scheme..."
-            mkdir -p "$(dirname "$plugdir")"
-            git clone -q https://github.com/dracula/tmux "$plugdir/dracula"
-        fi
+        mkdir -p "$(dirname "$plugdir")"
+        println "Installing tmux dracula colors scheme..."
+        rm -rf "$plugdir/dracula"
+        git clone -q https://github.com/dracula/tmux "$plugdir/dracula"
     else
         warn "tmux not found. Re-run ./install.sh after installing tmux."
     fi
