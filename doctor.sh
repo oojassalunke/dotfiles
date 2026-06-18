@@ -109,11 +109,6 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 section "Plugins"
-if [[ -d "$XDG_DATA_HOME/tmux/plugins/tpm" ]]; then
-    ok "tpm installed"
-else
-    warn "tpm not installed (re-run ./istow.sh once tmux is on PATH)"
-fi
 nvim_plugged="$XDG_DATA_HOME/nvim/plugged"
 if [[ -d $nvim_plugged ]]; then
     count=$(find "$nvim_plugged" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
