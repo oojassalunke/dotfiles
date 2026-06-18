@@ -39,8 +39,9 @@ myunlink config "$XDG_CONFIG_HOME"
 myunlink home   "$HOME"        --dot
 myunlink zsh    "$HOME"        --dot
 
-section "Removing cached Powerlevel10k promp files:
-rm -rf -- "${XDG_CACHE_HOME:-$HOME/.cache}"/p10k-*(N) "${XDG_CACHE_HOME:-$HOME/.cache}"/gitstatus
+section "Removing cached Powerlevel10k promp files:"
+rm -rf "${XDG_CACHE_HOME}"/gitstatus
+rm -rf "${XDG_CACHE_HOME}"/p10k-*
 
 
 section "Removing tmux plugins"
@@ -83,7 +84,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 section "Note"
-note "Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files)."
+note 'Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files).'
 
 section "Summary"
 if (( ERRORS == 0 && WARNINGS == 0 )); then
