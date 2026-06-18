@@ -84,7 +84,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 section "Note"
-note 'Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files).'
+note "Keeping ~/.zshrc.local and ~/.gitconfig.local (machine-local files)."
 
 section "Summary"
 if (( ERRORS == 0 && WARNINGS == 0 )); then

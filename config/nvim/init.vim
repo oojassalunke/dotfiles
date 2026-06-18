@@ -27,6 +27,8 @@ Plug 'neovim/nvim-lspconfig'
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
 
+Plug 'spacedentist/resolve.nvim'
+
 " Core deps
 Plug 'nvim-lua/plenary.nvim'
 
@@ -157,6 +159,11 @@ if hlterm then
         -- app = { python = "PYTHON_BASIC_REPL=1 python3" },
         app = { python = "ipython  --InteractiveShell.autoindent=False --no-tip --no-confirm-exit" },
     })
+end
+
+local resolve = safe_require('resolve')
+if resolve then
+    resolve.setup()
 end
 
 -- Mason: install editor tooling

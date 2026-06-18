@@ -94,5 +94,9 @@ else
     println "  all fonts already installed"
 fi
 
+# tell Hammerspoon where to find it's config
+mkdir -p $XDG_CONFIG_HOME/hammerspoon
+defaults write org.hammerspoon.Hammerspoon MJConfigFile $XDG_CONFIG_HOME/hammerspoon/init.lua
+
 println ""
 println "Done."
