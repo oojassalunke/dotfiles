@@ -25,18 +25,24 @@ dotfiles/os/macos-apps.sh  # optional: GUI apps + fonts via brew-cask (macOS onl
 
 ### One-command macOS setup
 
-On a Mac, `os/setup-mac.sh` chains the two bootstrap steps for you and then
-*prompts* before applying the opinionated system defaults:
+On a Mac, `os/setup-mac.sh` chains the bootstrap for you and then *prompts*
+before applying the opinionated system defaults:
 
 ```
-dotfiles/os/setup-mac.sh   # macos-cli.sh -> install.sh, then optionally macos-defaults.sh
+dotfiles/os/setup-mac.sh
 ```
 
-Steps 1-2 (`macos-cli.sh`, `install.sh`) are idempotent and safe to re-run.
-Step 3 (`macos-defaults.sh`, 83 `defaults write` settings) mutates system
-state and wants a logout/restart, so it stays opt-in — answer `y` at the
-prompt, or run `os/macos-defaults.sh` on its own whenever you like. Any
-arguments you pass are forwarded to `install.sh` (e.g. color flags).
+It runs, in order:
+
+1. `os/macos-cli.sh` — Xcode CLT + XDG dirs
+2. `install.sh` — symlink configs, mise, plugins (your args are forwarded here)
+3. **git / GitHub check** — prints the effective `user.name` / `user.email` and `gh` auth so you can confirm commits are attributed correctly
+4. `claude-setup/setup.sh` — install Claude Code and link your `~/.claude` config
+5. `os/macos-defaults.sh` — **opt-in**, prompted
+
+Steps 1-4 are idempotent and safe to re-run. Step 5 (83 `defaults write`
+settings) mutates system state and wants a logout/restart, so answer `y` at
+the prompt, or run `os/macos-defaults.sh` on its own whenever you like.
 
 Then if you want my changes:
 

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# One-command macOS setup: chains the two-step bootstrap and, optionally,
+# One-command macOS setup: chains the bootstrap steps and, optionally,
 # the opinionated system defaults.
 #
-#   1. os/macos-cli.sh    Xcode Command Line Tools + XDG dirs (idempotent)
-#   2. ./install.sh       symlink configs, bootstrap mise, install plugins
-#   3. os/macos-defaults.sh   (opt-in) `defaults write` system preferences
+#   1. os/macos-cli.sh        Xcode Command Line Tools + XDG dirs (idempotent)
+#   2. ./install.sh           symlink configs, bootstrap mise, install plugins
+#   2b. verify_git            confirm git / GitHub identity
+#   3. claude-setup/setup.sh  install Claude Code + link ~/.claude config
+#   4. os/macos-defaults.sh   (opt-in) `defaults write` system preferences
 #
-# Steps 1-2 are safe to re-run any time. Step 3 mutates system state
+# Steps 1-3 are safe to re-run any time. Step 4 mutates system state
 # (kills apps, wants a logout/restart), so it is prompted, not automatic.
 # It stays a separate script on purpose — see os/macos-defaults.sh.
 
@@ -79,7 +81,14 @@ println "==> install.sh"
 verify_git
 
 ##
-## 3. Opinionated system defaults (opt-in). Mutating; needs logout/restart.
+## 3. Claude Code — base personal setup (install + link ~/.claude config).
+##
+println ""
+println "==> claude-setup/setup.sh"
+"$_REPO/claude-setup/setup.sh"
+
+##
+## 4. Opinionated system defaults (opt-in). Mutating; needs logout/restart.
 ##
 println ""
 read -rp "Apply opinionated macOS system defaults now (os/macos-defaults.sh)? [y/N] " reply
