@@ -22,6 +22,8 @@ Two steps, run from a fresh clone of `~/dotfiles`:
 2. `./install.sh` — symlinks packages and config files
 3. *(optional)* `./extras.sh` — symlinks `templates/extras.toml` into `~/.config/mise/conf.d/` and runs `mise up` to install the dev/data pack. All-or-nothing; skip on minimal boxes.
 
+**macOS convenience wrapper:** `os/setup-mac.sh` chains step 1 (`macos-cli.sh`) → step 2 (`install.sh`), then *prompts* to run `os/macos-defaults.sh`. It's a thin wrapper (a new file, not an edit to `macos-cli.sh`) so `macos-cli.sh` stays byte-identical to upstream and never conflicts on rebase. `install.sh` args are forwarded. Keep `macos-defaults.sh` opt-in here — it mutates system state (`killall`, LaunchAgent, logout/restart), so it must never run automatically as part of the idempotent bootstrap.
+
 **Remaining goal:** fold step 1 into step 2 so bootstrap is a single command. When editing install scripts, prefer moves that bring us closer to one-command bootstrap. Ask Scott before making it automatic.
 
 ## Link layout

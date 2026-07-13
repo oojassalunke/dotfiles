@@ -23,6 +23,21 @@ dotfiles/extras.sh         # optional: languages + dev extras via mise
 dotfiles/os/macos-apps.sh  # optional: GUI apps + fonts via brew-cask (macOS only)
 ```
 
+### One-command macOS setup
+
+On a Mac, `os/setup-mac.sh` chains the two bootstrap steps for you and then
+*prompts* before applying the opinionated system defaults:
+
+```
+dotfiles/os/setup-mac.sh   # macos-cli.sh -> install.sh, then optionally macos-defaults.sh
+```
+
+Steps 1-2 (`macos-cli.sh`, `install.sh`) are idempotent and safe to re-run.
+Step 3 (`macos-defaults.sh`, 83 `defaults write` settings) mutates system
+state and wants a logout/restart, so it stays opt-in — answer `y` at the
+prompt, or run `os/macos-defaults.sh` on its own whenever you like. Any
+arguments you pass are forwarded to `install.sh` (e.g. color flags).
+
 Then if you want my changes:
 
 ```
