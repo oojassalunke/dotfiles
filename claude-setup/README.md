@@ -32,7 +32,7 @@ secrets, and the GSD framework. Every command is functional with just
 | `claude-home/skills/*` | 17 skills: caveman, diagnose, grill-me, grill-with-docs, handoff, humanizer, improve-codebase-architecture, prototype, setup-matt-pocock-skills, tdd, tldr-update, to-issues, to-prd, triage, ubiquitous-language, write-a-skill, zoom-out. |
 
 `review-doc` is a generic, dependency-free document reviewer (it replaced an
-older Outline/MCP-specific command).
+older MCP-specific command).
 
 ## What is deliberately NOT tracked (secret / runtime / machine-local)
 
