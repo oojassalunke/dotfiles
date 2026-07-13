@@ -96,7 +96,7 @@ Proposed fix: add `mylink bin ~/bin` (or similar) to `install.sh` once `bin/` is
 
 - `./clean.sh` — removes the symlinks `install.sh` created (via the `myunlink` helper), tpm, and nvim site. Leaves `~/.zshrc.local` and `~/.gitconfig.local` alone.
 - Re-run `./install.sh` after `clean.sh` to verify a fresh install still works.
-- `os/ephemeral-lima.sh` spins up a throwaway Debian VM for Linux-side testing from a Mac. `lima shell deb` to get in.
+- `os/linux/server-lima.sh` spins up a throwaway Debian VM for Linux-side testing from a Mac; `os/linux/shell-lima.sh` (or `limactl shell deb`) to get in.
 
 ## Conventions
 

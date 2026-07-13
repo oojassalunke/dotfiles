@@ -79,4 +79,4 @@ Configs go under `$XDG_CONFIG_HOME`, data under `$XDG_DATA_HOME`, cache under `$
 `./install.sh` can be re-run any number of times. Each downstream step (tpm, nvim plugins, mise tools) checks for its dependency on `PATH` and skips with a re-run hint if it's not there yet. No "fresh install" vs "update" modes, no destructive setup that only works once. You can interrupt and resume without tearing things down.
 
 **5. When a dependency's surface area exceeds the need, replace it with code.**
-This repo used GNU stow, but only ever the link + `--dotfiles` rename subset. That became ~15 lines of bash (`mylink` in `istow.sh`) and one fewer thing to `brew install` on a fresh mac. Same reasoning inlined the old `os/mise.sh` bootstrap into `istow.sh`. Code you control beats a dep you pin the version of.
+This repo used GNU stow, but only ever the link + `--dotfiles` rename subset. That became ~15 lines of bash (`mylink` in `install.sh`) and one fewer thing to `brew install` on a fresh mac. Same reasoning inlined the old `os/mise.sh` bootstrap into `install.sh`. Code you control beats a dep you pin the version of.
