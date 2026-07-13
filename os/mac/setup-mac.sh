@@ -5,6 +5,7 @@
 #   1. os/mac/macos-cli.sh       Xcode Command Line Tools + XDG dirs (idempotent)
 #   2. ./install.sh              symlink configs, bootstrap mise, install plugins
 #   2b. verify_git               confirm git / GitHub identity
+#   2c. verify_host_identity     show whoami + hostname; prompt to set hostname if unset
 #   3. claude-setup/setup.sh     install Claude Code + link ~/.claude config
 #   4. os/mac/macos-defaults.sh  (opt-in) `defaults write` system preferences
 #
@@ -62,6 +63,38 @@ verify_git() {
     fi
 }
 
+# Show the login user (whoami — always set) and the macOS hostname. A fresh
+# Mac often leaves HostName unset, so prompt to set one; the shell prompt and
+# networking otherwise fall back to a generic default.
+verify_host_identity() {
+    println ""
+    println "==> Host / user identity"
+    println "  user (whoami) : $(whoami)"
+
+    local computer hostn localh
+    computer="$(scutil --get ComputerName 2>/dev/null || true)"
+    hostn="$(scutil --get HostName 2>/dev/null || true)"
+    localh="$(scutil --get LocalHostName 2>/dev/null || true)"
+    println "  ComputerName  : ${computer:-<unset>}"
+    println "  HostName      : ${hostn:-<unset>}"
+    println "  LocalHostName : ${localh:-<unset>}"
+
+    [[ -n "$hostn" ]] && return   # already configured
+
+    local newhost
+    read -rp "  HostName is not set. Enter a hostname (blank to skip): " newhost || true
+    [[ -z "$newhost" ]] && { println "  skipped hostname setup"; return; }
+
+    # LocalHostName must be a single DNS label: letters, digits, hyphens only.
+    local localname
+    localname="$(printf '%s' "${newhost// /-}" | tr -cd 'A-Za-z0-9-')"
+
+    sudo scutil --set ComputerName  "$newhost"
+    sudo scutil --set HostName      "$newhost"
+    sudo scutil --set LocalHostName "$localname"
+    println "  set: ComputerName='$newhost'  HostName='$newhost'  LocalHostName='$localname'"
+}
+
 ##
 ## 1. Platform prep (Xcode CLT + XDG dirs). No Homebrew.
 ##
@@ -79,6 +112,11 @@ println "==> install.sh"
 ## 2b. Confirm git / GitHub identity is set up correctly.
 ##
 verify_git
+
+##
+## 2c. Show user + hostname; prompt to set a hostname if none is configured.
+##
+verify_host_identity
 
 ##
 ## 3. Claude Code — base personal setup (install + link ~/.claude config).
