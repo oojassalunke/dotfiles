@@ -6,6 +6,7 @@
 #   2. ./install.sh              symlink configs, bootstrap mise, install plugins
 #   2b. verify_git               confirm git / GitHub identity
 #   2c. verify_host_identity     show whoami + hostname; prompt only if none resolves
+#   2d. checkpoint               pause for the user to confirm the identity above
 #   3. claude-setup/setup.sh     install Claude Code + link ~/.claude config
 #   4. os/mac/macos-defaults.sh  (opt-in) `defaults write` system preferences
 #
@@ -124,6 +125,16 @@ verify_git
 ## 2c. Show user + hostname; prompt to set a hostname if none is configured.
 ##
 verify_host_identity
+
+##
+## 2d. Checkpoint — pause so the identity above isn't lost in the scrollback.
+##
+println ""
+println "------------------------------------------------------------------"
+read -rp "Does the git + host identity above look correct? [Y/n] " id_ok || true
+if [[ "$id_ok" == [nN]* ]]; then
+    die "Stopped at identity check. Fix ~/.gitconfig.local (git) or set a hostname, then re-run os/mac/setup-mac.sh."
+fi
 
 ##
 ## 3. Claude Code — base personal setup (install + link ~/.claude config).
