@@ -7,40 +7,42 @@ Base personal setup for [Claude Code](https://claude.com/claude-code). Run by
 claude-setup/setup.sh
 ```
 
+Snapshot of the portable parts of `~/.claude`, stripped of company info,
+secrets, and the GSD framework. Every command is functional with just
+`git`/`gh` and Claude Code's built-in tools — no plugins or MCP required.
+
 ## What it does
 
 1. **Installs Claude Code** if the `claude` command is missing (npm, or the
    official installer as a fallback).
-2. **Seeds `~/.claude/settings.json`** from `claude/settings.json` — *no-clobber*.
-   Claude Code mutates this file (via `/config`, plugin toggles), so it is a
-   real file it owns, not a symlink into the repo. Edit `claude/settings.json`
+2. **Seeds `~/.claude/settings.json`** from `claude-home/settings.json` —
+   *no-clobber*. Claude Code mutates this file (`/config`, plugin toggles), so
+   it is a real file Claude owns, not a symlink. Edit `claude-home/settings.json`
    to change the baseline for future fresh machines.
-3. **Symlinks your custom commands** (`claude/commands/*.md`) into
-   `~/.claude/commands/`. These are static prompt files, so edits propagate
-   back to the repo. Existing real files are backed up to `*.bak`.
+3. **Symlinks commands and skills** (`claude-home/commands/*`,
+   `claude-home/skills/*`) into `~/.claude/`. Static files, so edits propagate
+   back to the repo. Existing real files/dirs are backed up to `*.bak`.
 
 ## What is tracked
 
-| Path | Why |
-|------|-----|
-| `claude/settings.json` | Global Claude Code settings (model, hooks, statusline, TUI). No secrets. |
-| `claude/commands/*.md` | Personal slash commands: `merge`, `my-pr-review`, `pr-review-2`, `plan-exit-review`, `progress-update`, `review-outline-doc`. |
+| Path | Contents |
+|------|----------|
+| `claude-home/settings.json` | Global settings: `model: opus[1m]`, `effortLevel: high`, `permissions.defaultMode: auto`. No secrets. |
+| `claude-home/commands/*.md` | Slash commands: `merge`, `my-pr-review`, `pr-review-2`, `plan-exit-review`, `progress-update`, `review-doc`. |
+| `claude-home/skills/*` | 17 skills: caveman, diagnose, grill-me, grill-with-docs, handoff, humanizer, improve-codebase-architecture, prototype, setup-matt-pocock-skills, tdd, tldr-update, to-issues, to-prd, triage, ubiquitous-language, write-a-skill, zoom-out. |
+
+`review-doc` is a generic, dependency-free document reviewer (it replaced an
+older Outline/MCP-specific command).
 
 ## What is deliberately NOT tracked (secret / runtime / machine-local)
 
 `~/.claude.json` (auth), `history.jsonl`, `projects/` (transcripts),
-`sessions/`, `settings.local.json` (per-machine permissions), all caches,
-and the `plugins/` tree. A `.gitignore` here is a safety net against
-accidentally committing any of them.
+`sessions/`, `settings.local.json` (per-machine permissions), all caches, and
+the `plugins/` tree. A `.gitignore` here is a safety net against accidentally
+committing any of them.
 
-## GSD (get-shit-done) plugin
+## Not included
 
-`settings.json` wires `SessionStart`/`PostToolUse` hooks and the status line to
-the get-shit-done plugin (`~/.claude/hooks/gsd-*.js`). This setup **does not**
-install plugins. On a fresh machine, either install GSD in Claude Code with
-`/plugin`, or remove those hook entries from `~/.claude/settings.json` if you
-don't use it — otherwise Claude Code will reference hook scripts that don't
-exist.
-
-> Note: paths in `settings.json` are absolute (`/Users/oojas/...`), so this
-> reproduces cleanly on a machine with the same username.
+- **Plugins / GSD** — none. Built-in Claude Code skills (`code-review`, `run`,
+  `verify`, …) ship with the CLI and appear automatically.
+- **MCP servers** — set up your own via `claude mcp add` if you want them.

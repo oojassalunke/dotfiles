@@ -115,24 +115,61 @@ Report findings with severity, location, impact.
 
 ---
 
-## Phase 3: Compile Review
+## Phase 3: Live Functional Testing
 
-After all subagents complete and direct checks finish:
+After analysis completes, locally run the new functionality introduced by the PR to surface runtime issues that unit tests and static analysis miss. This is NOT about re-running unit tests (CI handles that) — it's about exercising the actual user-facing features end-to-end.
+
+### Task 3.1: Identify What to Test
+From the Phase 1 change summary, identify:
+- New CLI commands or flags added
+- Changed behavior in existing commands
+- New API endpoints or programmatic interfaces
+- Configuration changes that affect runtime behavior
+
+Skip: internal refactors with no user-facing change, test-only PRs, doc-only PRs.
+
+### Task 3.2: Design Test Runs
+For each new/changed capability, design a minimal live invocation that exercises it. Prefer:
+- `--ephemeral` / in-memory modes to avoid polluting local state
+- Small inputs that complete quickly but still exercise the code path
+- Flag combinations that test the new functionality specifically
+
+### Task 3.3: Execute Test Runs
+Run each test from the worktree. For each run, capture:
+- Whether it completed without crashes/tracebacks
+- Whether the output is correct and well-formatted
+- Any unexpected behavior, warnings, or error messages
+- Approximate cost/time if relevant
+
+### Task 3.4: Record Results
+Add a live testing results table to findings:
+
+| Test | Command | Result | Notes |
+|------|---------|--------|-------|
+
+Mark any runtime issues found as findings with appropriate severity.
+
+---
+
+## Phase 4: Compile Review
+
+After all subagents complete, direct checks finish, and live testing is done:
 
 1. Deduplicate findings across subagents
 2. Cross-reference with prior review comments (mark resolved vs still-open)
 3. Write consolidated `../reviews/PR{number}.md` with sections:
    - Phase 1: Change Summary
    - Phase 2: Prior Comments Status + Test/Lint Results
+   - Phase 3: Live Testing Results
    - Test Coverage (table + uncovered lines)
    - Findings (grouped by HIGH/MEDIUM/LOW)
    - Summary box with counts + key recommendations
 
 ---
 
-## Phase 4: Curation & Submission
+## Phase 5: Curation & Submission
 
-### Task 4.1: Present Finding Summary
+### Task 5.1: Present Finding Summary
 ```
 +----------------------------------------------+
 | PR Review Findings Summary                   |
@@ -143,19 +180,19 @@ After all subagents complete and direct checks finish:
 +----------------------------------------------+
 ```
 
-### Task 4.2: User Curation
+### Task 5.2: User Curation
 Ask user:
 - Which findings to include?
 - Any findings to exclude?
 - Custom observations to add?
 
-### Task 4.3: Check Prior Comments
+### Task 5.3: Check Prior Comments
 Before posting, verify new findings weren't already reported:
 ```bash
 gh pr view <pr_number> --comments --json comments
 ```
 
-### Task 4.4: Submit PR Comment
+### Task 5.4: Submit PR Comment
 Post curated findings:
 ```bash
 gh pr comment <pr_number> --body "$(cat <<'EOF'
