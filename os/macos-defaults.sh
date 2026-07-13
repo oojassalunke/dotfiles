@@ -278,16 +278,24 @@ for i in $(seq 15 26); do
 done
 
 ###############################################################################
-# Keyboard Remapping: Caps Lock → Control                                     #
+# Keyboard Remapping: Caps Lock → Control (ALL keyboards)                     #
 ###############################################################################
 
-# Remap Caps Lock (0x700000039) to Left Control (0x7000000E0) via hidutil
-# This takes effect immediately for all keyboards
+# Remap Caps Lock (0x700000039) -> Left Control (0x7000000E0) via hidutil.
+# With no --matching filter this sets the mapping on the global HID system,
+# so it applies to every keyboard connected *right now* -- built-in, USB,
+# and Bluetooth alike. Takes effect immediately.
 hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}' >/dev/null
 
-# Make it persist across reboots via LaunchAgent
+# Persist it. A bare hidutil set is lost on reboot and does NOT reach a
+# keyboard plugged in later, so a LaunchAgent reapplies the mapping:
+#   - RunAtLoad:  at every login / reboot
+#   - LaunchEvents (IOKit match on HID keyboards, usage page 1 / usage 6):
+#     fires whenever ANY keyboard is attached, so newly added keyboards
+#     (external USB / Bluetooth) get remapped automatically.
 AGENT_DIR="$HOME/Library/LaunchAgents"
 AGENT_FILE="$AGENT_DIR/com.local.KeyRemapping.plist"
+AGENT_LABEL="com.local.KeyRemapping"
 mkdir -p "$AGENT_DIR"
 cat > "$AGENT_FILE" << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -305,9 +313,32 @@ cat > "$AGENT_FILE" << 'EOF'
     </array>
     <key>RunAtLoad</key>
     <true/>
+    <key>LaunchEvents</key>
+    <dict>
+        <key>com.apple.iokit.matching</key>
+        <dict>
+            <key>com.local.KeyRemapping.keyboardAttached</key>
+            <dict>
+                <key>IOProviderClass</key>
+                <string>IOHIDDevice</string>
+                <key>IOMatchLaunchStream</key>
+                <true/>
+                <key>PrimaryUsagePage</key>
+                <integer>1</integer>
+                <key>PrimaryUsage</key>
+                <integer>6</integer>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>
 EOF
+
+# Validate and (re)load now so it's active without waiting for a logout.
+plutil -lint "$AGENT_FILE" >/dev/null
+launchctl bootout "gui/$(id -u)/$AGENT_LABEL" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$AGENT_FILE" 2>/dev/null \
+    || launchctl load -w "$AGENT_FILE" 2>/dev/null || true
 
 ###############################################################################
 # Accessibility                                                               #
