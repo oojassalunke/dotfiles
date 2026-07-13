@@ -40,18 +40,7 @@ println ""
 read -rp "Apply opinionated macOS system defaults now (os/macos-defaults.sh)? [y/N] " reply
 if [[ "$reply" == [yY] ]]; then
     println "==> os/macos-defaults.sh"
-    "$_D/macos-defaults.sh"
-    println ""
-    println "Applied personalized macOS preferences. Quick summary:"
-    println "  - Appearance   dark mode, show all file extensions"
-    println "  - Keyboard     fast key repeat; Caps Lock -> Control (all keyboards)"
-    println "  - Trackpad     tap-to-click, natural scroll OFF, 3/4-finger space swipe"
-    println "  - Dock         auto-hide (no delay); hot corner = display sleep"
-    println "  - Finder       list view, path/status bar, search current folder"
-    println "  - Screenshots  copied to clipboard (not saved as files)"
-    println "  - Shortcuts    Cmd-Space Spotlight disabled; Ctrl-arrows for Spaces"
-    println "  - Sound/Siri   UI sounds off; Siri disabled"
-    println "  Full list in os/macos-defaults.sh. A logout/restart is recommended."
+    "$_D/macos-defaults.sh"   # prints its own "Changes applied" summary
 else
     println "Skipped system defaults. Run os/macos-defaults.sh yourself when ready."
 fi
