@@ -2,25 +2,25 @@
 # One-command macOS setup: chains the bootstrap steps and, optionally,
 # the opinionated system defaults.
 #
-#   1. os/macos-cli.sh        Xcode Command Line Tools + XDG dirs (idempotent)
-#   2. ./install.sh           symlink configs, bootstrap mise, install plugins
-#   2b. verify_git            confirm git / GitHub identity
-#   3. claude-setup/setup.sh  install Claude Code + link ~/.claude config
-#   4. os/macos-defaults.sh   (opt-in) `defaults write` system preferences
+#   1. os/mac/macos-cli.sh       Xcode Command Line Tools + XDG dirs (idempotent)
+#   2. ./install.sh              symlink configs, bootstrap mise, install plugins
+#   2b. verify_git               confirm git / GitHub identity
+#   3. claude-setup/setup.sh     install Claude Code + link ~/.claude config
+#   4. os/mac/macos-defaults.sh  (opt-in) `defaults write` system preferences
 #
 # Steps 1-3 are safe to re-run any time. Step 4 mutates system state
 # (kills apps, wants a logout/restart), so it is prompted, not automatic.
-# It stays a separate script on purpose — see os/macos-defaults.sh.
+# It stays a separate script on purpose — see os/mac/macos-defaults.sh.
 
 set -Eeuo pipefail
 
 println() { printf '%s\n' "$*"; }
 die()     { printf '%s\n' "$*" >&2; exit 1; }
 
-readonly _D="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # os/
-readonly _REPO="$(cd "$_D/.." && pwd)"                        # repo root
+readonly _D="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # os/mac/
+readonly _REPO="$(cd "$_D/../.." && pwd)"                     # repo root
 
-[[ "$(uname)" == "Darwin" ]] || die "This script is for macOS. Use os/debian.sh on Linux."
+[[ "$(uname)" == "Darwin" ]] || die "This script is for macOS. Use os/linux/debian.sh on Linux."
 
 # Show the effective git identity (from ~/.gitconfig.local via ~/.config/git)
 # and GitHub CLI auth, so a fresh setup can confirm commits are attributed
@@ -65,7 +65,7 @@ verify_git() {
 ##
 ## 1. Platform prep (Xcode CLT + XDG dirs). No Homebrew.
 ##
-println "==> os/macos-cli.sh"
+println "==> os/mac/macos-cli.sh"
 "$_D/macos-cli.sh"
 
 ##
@@ -91,12 +91,12 @@ println "==> claude-setup/setup.sh"
 ## 4. Opinionated system defaults (opt-in). Mutating; needs logout/restart.
 ##
 println ""
-read -rp "Apply opinionated macOS system defaults now (os/macos-defaults.sh)? [y/N] " reply
+read -rp "Apply opinionated macOS system defaults now (os/mac/macos-defaults.sh)? [y/N] " reply
 if [[ "$reply" == [yY] ]]; then
-    println "==> os/macos-defaults.sh"
+    println "==> os/mac/macos-defaults.sh"
     "$_D/macos-defaults.sh"   # prints its own "Changes applied" summary
 else
-    println "Skipped system defaults. Run os/macos-defaults.sh yourself when ready."
+    println "Skipped system defaults. Run os/mac/macos-defaults.sh yourself when ready."
 fi
 
 println ""

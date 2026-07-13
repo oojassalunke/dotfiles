@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # claude-setup: install Claude Code (if missing) and link personal Claude
-# config into ~/.claude. Part of the base personal setup (see os/setup-mac.sh).
+# config into ~/.claude. Part of the base personal setup (see os/mac/setup-mac.sh).
 #
 # Ports the full personal config so it's functional on a fresh machine:
 #   - settings.json   seeded no-clobber; Claude Code owns the live file

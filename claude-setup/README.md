@@ -1,7 +1,7 @@
 # claude-setup
 
 Base personal setup for [Claude Code](https://claude.com/claude-code). Run by
-`os/setup-mac.sh`, or standalone:
+`os/mac/setup-mac.sh`, or standalone:
 
 ```
 claude-setup/setup.sh
