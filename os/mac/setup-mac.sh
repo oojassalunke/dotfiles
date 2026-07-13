@@ -5,7 +5,7 @@
 #   1. os/mac/macos-cli.sh       Xcode Command Line Tools + XDG dirs (idempotent)
 #   2. ./install.sh              symlink configs, bootstrap mise, install plugins
 #   2b. verify_git               confirm git / GitHub identity
-#   2c. verify_host_identity     show whoami + hostname; prompt to set hostname if unset
+#   2c. verify_host_identity     show whoami + hostname; prompt only if none resolves
 #   3. claude-setup/setup.sh     install Claude Code + link ~/.claude config
 #   4. os/mac/macos-defaults.sh  (opt-in) `defaults write` system preferences
 #
@@ -78,11 +78,18 @@ verify_host_identity() {
     println "  ComputerName  : ${computer:-<unset>}"
     println "  HostName      : ${hostn:-<unset>}"
     println "  LocalHostName : ${localh:-<unset>}"
+    println "  hostname      : $(hostname)"
 
-    [[ -n "$hostn" ]] && return   # already configured
+    # Consider the hostname configured if HostName is set, OR the effective
+    # hostname already resolves to a real name. macOS derives `hostname`
+    # (e.g. MacBook-Air.local) from LocalHostName when HostName is unset, so
+    # that already works for shells and Bonjour — don't nag in that case.
+    if [[ -n "$hostn" ]] || { [[ -n "$localh" && "$localh" != "localhost" ]]; }; then
+        return
+    fi
 
     local newhost
-    read -rp "  HostName is not set. Enter a hostname (blank to skip): " newhost || true
+    read -rp "  No hostname is configured. Enter one (blank to skip): " newhost || true
     [[ -z "$newhost" ]] && { println "  skipped hostname setup"; return; }
 
     # LocalHostName must be a single DNS label: letters, digits, hyphens only.
